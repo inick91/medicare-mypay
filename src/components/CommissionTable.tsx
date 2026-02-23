@@ -7,10 +7,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { Commission } from "@/lib/data";
 
 interface CommissionTableProps {
   commissions: Commission[];
+  onStatusChange: (id: string, status: Commission['status']) => void;
 }
 
 const statusStyles: Record<Commission['status'], string> = {
@@ -19,7 +27,13 @@ const statusStyles: Record<Commission['status'], string> = {
   clawback: 'bg-destructive/10 text-destructive border-destructive/20',
 };
 
-const CommissionTable = ({ commissions }: CommissionTableProps) => {
+const statusOptions: { value: Commission['status']; label: string; icon: typeof CheckCircle2 }[] = [
+  { value: 'pending', label: 'Pending', icon: Clock },
+  { value: 'paid', label: 'Paid', icon: CheckCircle2 },
+  { value: 'clawback', label: 'Clawback', icon: AlertTriangle },
+];
+
+const CommissionTable = ({ commissions, onStatusChange }: CommissionTableProps) => {
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
       <Table>
@@ -46,9 +60,27 @@ const CommissionTable = ({ commissions }: CommissionTableProps) => {
               </TableCell>
               <TableCell className="text-right font-semibold">${c.commissionAmount.toLocaleString()}</TableCell>
               <TableCell>
-                <Badge variant="outline" className={statusStyles[c.status]}>
-                  {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
-                </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="focus:outline-none">
+                      <Badge variant="outline" className={`${statusStyles[c.status]} cursor-pointer hover:opacity-80 transition-opacity`}>
+                        {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
+                      </Badge>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-36">
+                    {statusOptions.map(opt => (
+                      <DropdownMenuItem
+                        key={opt.value}
+                        onClick={() => onStatusChange(c.id, opt.value)}
+                        className={c.status === opt.value ? 'font-semibold' : ''}
+                      >
+                        <opt.icon className="h-4 w-4 mr-2" />
+                        {opt.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
