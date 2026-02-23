@@ -25,6 +25,10 @@ const Index = () => {
     setCommissions(prev => [commission, ...prev]);
   };
 
+  const handleStatusChange = (id: string, status: Commission['status']) => {
+    setCommissions(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -69,7 +73,7 @@ const Index = () => {
         </div>
 
         {/* Table */}
-        <CommissionTable commissions={filtered} />
+        <CommissionTable commissions={filtered} onStatusChange={handleStatusChange} />
       </main>
     </div>
   );
