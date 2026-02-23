@@ -1,50 +1,64 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
 import { Commission } from "@/lib/data";
 
-interface AddCommissionDialogProps {
-  onAdd: (commission: Commission) => void;
+interface CommissionFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (commission: Commission) => void;
+  editingCommission?: Commission | null;
 }
 
-const AddCommissionDialog = ({ onAdd }: AddCommissionDialogProps) => {
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    agentName: '',
-    policyNumber: '',
-    carrier: '',
-    planType: '' as Commission['planType'],
-    enrollmentDate: '',
-    commissionAmount: '',
-    status: 'pending' as Commission['status'],
-  });
+const emptyForm = {
+  agentName: '',
+  policyNumber: '',
+  carrier: '',
+  planType: '' as Commission['planType'],
+  enrollmentDate: '',
+  commissionAmount: '',
+  status: 'pending' as Commission['status'],
+};
+
+const CommissionFormDialog = ({ open, onOpenChange, onSubmit, editingCommission }: CommissionFormDialogProps) => {
+  const [form, setForm] = useState(emptyForm);
+  const isEditing = !!editingCommission;
+
+  useEffect(() => {
+    if (editingCommission) {
+      setForm({
+        agentName: editingCommission.agentName,
+        policyNumber: editingCommission.policyNumber,
+        carrier: editingCommission.carrier,
+        planType: editingCommission.planType,
+        enrollmentDate: editingCommission.enrollmentDate,
+        commissionAmount: String(editingCommission.commissionAmount),
+        status: editingCommission.status,
+      });
+    } else {
+      setForm(emptyForm);
+    }
+  }, [editingCommission, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd({
-      id: crypto.randomUUID(),
+    onSubmit({
+      id: editingCommission?.id ?? crypto.randomUUID(),
       ...form,
       commissionAmount: parseFloat(form.commissionAmount),
     });
-    setForm({ agentName: '', policyNumber: '', carrier: '', planType: '' as Commission['planType'], enrollmentDate: '', commissionAmount: '', status: 'pending' });
-    setOpen(false);
+    setForm(emptyForm);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Commission
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">Add Commission Entry</DialogTitle>
+          <DialogTitle className="font-display">{isEditing ? 'Edit' : 'Add'} Commission Entry</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="grid grid-cols-2 gap-4">
@@ -96,11 +110,11 @@ const AddCommissionDialog = ({ onAdd }: AddCommissionDialogProps) => {
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full">Add Entry</Button>
+          <Button type="submit" className="w-full">{isEditing ? 'Save Changes' : 'Add Entry'}</Button>
         </form>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AddCommissionDialog;
+export default CommissionFormDialog;
