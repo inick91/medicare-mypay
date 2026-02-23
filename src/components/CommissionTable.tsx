@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle, ChevronDown } from "lucide-react";
 import { Commission } from "@/lib/data";
 
 interface CommissionTableProps {
@@ -62,9 +62,15 @@ const CommissionTable = ({ commissions, onStatusChange }: CommissionTableProps) 
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="focus:outline-none">
-                      <Badge variant="outline" className={`${statusStyles[c.status]} cursor-pointer hover:opacity-80 transition-opacity`}>
-                        {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
+                    <button className="focus:outline-none group flex items-center gap-1">
+                      <Badge variant="outline" className={`${statusStyles[c.status]} cursor-pointer group-hover:shadow-md transition-all pr-1.5`}>
+                        <span className="flex items-center gap-1.5">
+                          {c.status === 'paid' && <CheckCircle2 className="h-3 w-3" />}
+                          {c.status === 'pending' && <Clock className="h-3 w-3" />}
+                          {c.status === 'clawback' && <AlertTriangle className="h-3 w-3" />}
+                          {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
+                          <ChevronDown className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                        </span>
                       </Badge>
                     </button>
                   </DropdownMenuTrigger>
