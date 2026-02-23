@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Settings } from "lucide-react";
 import SummaryCards from "@/components/SummaryCards";
 import CommissionTable from "@/components/CommissionTable";
 import CommissionFormDialog from "@/components/CommissionFormDialog";
@@ -52,10 +53,17 @@ const Index = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Track and manage agent commission payments</p>
           </div>
-          <Button className="gap-2" onClick={() => { setEditingCommission(null); setFormOpen(true); }}>
-            <Plus className="h-4 w-4" />
-            Add Commission
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/rates">
+              <Button variant="outline" size="icon" className="h-9 w-9">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Button className="gap-2" onClick={() => { setEditingCommission(null); setFormOpen(true); }}>
+              <Plus className="h-4 w-4" />
+              Add Commission
+            </Button>
+          </div>
         </div>
       </header>
 
