@@ -13,12 +13,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CheckCircle2, Clock, AlertTriangle, ChevronDown } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle, ChevronDown, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Commission } from "@/lib/data";
 
 interface CommissionTableProps {
   commissions: Commission[];
   onStatusChange: (id: string, status: Commission['status']) => void;
+  onEdit: (commission: Commission) => void;
 }
 
 const statusStyles: Record<Commission['status'], string> = {
@@ -33,7 +35,7 @@ const statusOptions: { value: Commission['status']; label: string; icon: typeof 
   { value: 'clawback', label: 'Clawback', icon: AlertTriangle },
 ];
 
-const CommissionTable = ({ commissions, onStatusChange }: CommissionTableProps) => {
+const CommissionTable = ({ commissions, onStatusChange, onEdit }: CommissionTableProps) => {
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
       <Table>
@@ -46,6 +48,7 @@ const CommissionTable = ({ commissions, onStatusChange }: CommissionTableProps) 
             <TableHead className="font-semibold text-foreground">Enrolled</TableHead>
             <TableHead className="font-semibold text-foreground text-right">Amount</TableHead>
             <TableHead className="font-semibold text-foreground">Status</TableHead>
+            <TableHead className="font-semibold text-foreground w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -88,11 +91,16 @@ const CommissionTable = ({ commissions, onStatusChange }: CommissionTableProps) 
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
+              <TableCell>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => onEdit(c)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
           {commissions.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+              <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                 No commission entries found.
               </TableCell>
             </TableRow>
