@@ -21,11 +21,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Settings, ArrowLeft, Ban } from "lucide-react";
 import { Link } from "react-router-dom";
-import { CommissionRate, PLAN_TYPES, DEFAULT_CARRIERS, CMS_2026_RATES, sampleRates } from "@/lib/data";
+import { CommissionRate, PLAN_TYPES, DEFAULT_CARRIERS, CMS_2026_RATES } from "@/lib/data";
 import SavedIndicator from "@/components/SavedIndicator";
+import { useRates } from "@/contexts/RatesContext";
 
 const RatesPage = () => {
-  const [rates, setRates] = useState<CommissionRate[]>(sampleRates);
+  const { rates, setRates } = useRates();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRate, setEditingRate] = useState<CommissionRate | null>(null);
   const [form, setForm] = useState({
