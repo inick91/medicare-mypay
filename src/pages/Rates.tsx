@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -17,26 +18,69 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Settings, ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, Settings, ArrowLeft, Ban } from "lucide-react";
 import { Link } from "react-router-dom";
-import { CommissionRate, PLAN_TYPES, DEFAULT_CARRIERS, sampleRates } from "@/lib/data";
+import { CommissionRate, PLAN_TYPES, DEFAULT_CARRIERS, CMS_2026_RATES, sampleRates } from "@/lib/data";
+import SavedIndicator from "@/components/SavedIndicator";
 
 const RatesPage = () => {
   const [rates, setRates] = useState<CommissionRate[]>(sampleRates);
   const [formOpen, setFormOpen] = useState(false);
   const [editingRate, setEditingRate] = useState<CommissionRate | null>(null);
-  const [form, setForm] = useState({ carrier: '', planType: '' as CommissionRate['planType'], amount: '' });
+  const [form, setForm] = useState({
+    carrier: '',
+    planType: '' as CommissionRate['planType'],
+    planName: '',
+    initialAmount: '',
+    renewalAmount: '',
+    nonCommissionable: false,
+  });
+
+  // Saved indicator state
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [savedTrigger, setSavedTrigger] = useState(0);
 
   const openAdd = () => {
     setEditingRate(null);
-    setForm({ carrier: '', planType: '' as CommissionRate['planType'], amount: '' });
+    setForm({ carrier: '', planType: '' as CommissionRate['planType'], planName: '', initialAmount: '', renewalAmount: '', nonCommissionable: false });
     setFormOpen(true);
   };
 
   const openEdit = (rate: CommissionRate) => {
     setEditingRate(rate);
-    setForm({ carrier: rate.carrier, planType: rate.planType, amount: String(rate.amount) });
+    setForm({
+      carrier: rate.carrier,
+      planType: rate.planType,
+      planName: rate.planName,
+      initialAmount: String(rate.initialAmount),
+      renewalAmount: String(rate.renewalAmount),
+      nonCommissionable: rate.nonCommissionable,
+    });
     setFormOpen(true);
+  };
+
+  // When plan type changes, auto-fill CMS defaults
+  const handlePlanTypeChange = (planType: CommissionRate['planType']) => {
+    const defaults = CMS_2026_RATES[planType];
+    setForm(f => ({
+      ...f,
+      planType,
+      ...(defaults && !f.nonCommissionable
+        ? { initialAmount: String(defaults.initial), renewalAmount: String(defaults.renewal) }
+        : {}),
+    }));
+  };
+
+  const handleNonCommissionableToggle = (checked: boolean) => {
+    setForm(f => ({
+      ...f,
+      nonCommissionable: checked,
+      ...(checked ? { initialAmount: '0', renewalAmount: '0' } : (() => {
+        const defaults = CMS_2026_RATES[f.planType];
+        return defaults ? { initialAmount: String(defaults.initial), renewalAmount: String(defaults.renewal) } : {};
+      })()),
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,7 +89,10 @@ const RatesPage = () => {
       id: editingRate?.id ?? crypto.randomUUID(),
       carrier: form.carrier,
       planType: form.planType,
-      amount: parseFloat(form.amount),
+      planName: form.planName,
+      initialAmount: form.nonCommissionable ? 0 : parseFloat(form.initialAmount),
+      renewalAmount: form.nonCommissionable ? 0 : parseFloat(form.renewalAmount),
+      nonCommissionable: form.nonCommissionable,
     };
     if (editingRate) {
       setRates(prev => prev.map(r => r.id === entry.id ? entry : r));
@@ -77,12 +124,12 @@ const RatesPage = () => {
                 <Settings className="h-5 w-5 text-accent" />
                 Commission Rates
               </h1>
-              <p className="text-sm text-muted-foreground">Set default commission amounts per carrier and plan type</p>
+              <p className="text-sm text-muted-foreground">Set commission amounts per carrier plan · CMS 2026 rates as defaults</p>
             </div>
           </div>
           <Button className="gap-2" onClick={openAdd}>
             <Plus className="h-4 w-4" />
-            Add Rate
+            Add Plan
           </Button>
         </div>
       </header>
@@ -94,7 +141,7 @@ const RatesPage = () => {
             <p className="text-muted-foreground">No commission rates configured yet.</p>
             <Button className="mt-4 gap-2" onClick={openAdd}>
               <Plus className="h-4 w-4" />
-              Add Your First Rate
+              Add Your First Plan
             </Button>
           </div>
         ) : (
@@ -108,16 +155,34 @@ const RatesPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="font-semibold text-foreground">Plan Type</TableHead>
-                      <TableHead className="font-semibold text-foreground text-right">Commission Amount</TableHead>
+                      <TableHead className="font-semibold text-foreground">Plan Name</TableHead>
+                      <TableHead className="font-semibold text-foreground">Type</TableHead>
+                      <TableHead className="font-semibold text-foreground text-right">Initial</TableHead>
+                      <TableHead className="font-semibold text-foreground text-right">Renewal</TableHead>
                       <TableHead className="font-semibold text-foreground w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {carrierRates.map(rate => (
-                      <TableRow key={rate.id} className="hover:bg-muted/30">
-                        <TableCell>{rate.planType}</TableCell>
-                        <TableCell className="text-right font-semibold">${rate.amount.toLocaleString()}</TableCell>
+                      <TableRow key={rate.id} className={`hover:bg-muted/30 ${rate.nonCommissionable ? 'opacity-60' : ''}`}>
+                        <TableCell className="font-medium">
+                          <span className="flex items-center gap-2">
+                            {rate.planName}
+                            {rate.nonCommissionable && (
+                              <Badge variant="outline" className="text-xs bg-muted/50 text-muted-foreground border-muted-foreground/20 gap-1">
+                                <Ban className="h-3 w-3" />
+                                Non-comm.
+                              </Badge>
+                            )}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">{rate.planType}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {rate.nonCommissionable ? '—' : `$${rate.initialAmount.toLocaleString()}`}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {rate.nonCommissionable ? '—' : `$${rate.renewalAmount.toLocaleString()}`}
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(rate)}>
@@ -139,40 +204,101 @@ const RatesPage = () => {
       </main>
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">{editingRate ? 'Edit' : 'Add'} Commission Rate</DialogTitle>
+            <DialogTitle className="font-display">{editingRate ? 'Edit' : 'Add'} Plan Commission Rate</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Carrier</Label>
+                <Input
+                  required
+                  value={form.carrier}
+                  onChange={e => setForm(f => ({ ...f, carrier: e.target.value }))}
+                  placeholder="e.g. Humana"
+                  list="carrier-suggestions"
+                />
+                <datalist id="carrier-suggestions">
+                  {DEFAULT_CARRIERS.map(c => <option key={c} value={c} />)}
+                </datalist>
+              </div>
+              <div className="space-y-2">
+                <Label>Plan Type</Label>
+                <Select required value={form.planType} onValueChange={handlePlanTypeChange}>
+                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                  <SelectContent>
+                    {PLAN_TYPES.map(pt => (
+                      <SelectItem key={pt} value={pt}>{pt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Carrier</Label>
+              <Label>Plan Name</Label>
               <Input
                 required
-                value={form.carrier}
-                onChange={e => setForm(f => ({ ...f, carrier: e.target.value }))}
-                placeholder="e.g. Humana"
-                list="carrier-suggestions"
+                value={form.planName}
+                onChange={e => setForm(f => ({ ...f, planName: e.target.value }))}
+                placeholder="e.g. Humana Gold Plus H1036-040"
               />
-              <datalist id="carrier-suggestions">
-                {DEFAULT_CARRIERS.map(c => <option key={c} value={c} />)}
-              </datalist>
             </div>
-            <div className="space-y-2">
-              <Label>Plan Type</Label>
-              <Select required value={form.planType} onValueChange={v => setForm(f => ({ ...f, planType: v as CommissionRate['planType'] }))}>
-                <SelectTrigger><SelectValue placeholder="Select plan type" /></SelectTrigger>
-                <SelectContent>
-                  {PLAN_TYPES.map(pt => (
-                    <SelectItem key={pt} value={pt}>{pt}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            <div className="flex items-center justify-between rounded-lg border border-border p-3 bg-muted/30">
+              <div>
+                <Label className="text-sm font-medium">Non-Commissionable</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Commission is $0 and cannot be edited</p>
+              </div>
+              <Switch
+                checked={form.nonCommissionable}
+                onCheckedChange={handleNonCommissionableToggle}
+              />
             </div>
-            <div className="space-y-2">
-              <Label>Commission Amount ($)</Label>
-              <Input required type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="601" />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between">
+                  Initial ($)
+                  {CMS_2026_RATES[form.planType] && !form.nonCommissionable && (
+                    <span className="text-xs text-muted-foreground font-normal">CMS max: ${CMS_2026_RATES[form.planType].initial}</span>
+                  )}
+                </Label>
+                <Input
+                  required
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.initialAmount}
+                  onChange={e => setForm(f => ({ ...f, initialAmount: e.target.value }))}
+                  placeholder="694"
+                  disabled={form.nonCommissionable}
+                  className={form.nonCommissionable ? 'opacity-50' : ''}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between">
+                  Renewal ($)
+                  {CMS_2026_RATES[form.planType] && !form.nonCommissionable && (
+                    <span className="text-xs text-muted-foreground font-normal">CMS max: ${CMS_2026_RATES[form.planType].renewal}</span>
+                  )}
+                </Label>
+                <Input
+                  required
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.renewalAmount}
+                  onChange={e => setForm(f => ({ ...f, renewalAmount: e.target.value }))}
+                  placeholder="347"
+                  disabled={form.nonCommissionable}
+                  className={form.nonCommissionable ? 'opacity-50' : ''}
+                />
+              </div>
             </div>
-            <Button type="submit" className="w-full">{editingRate ? 'Save Changes' : 'Add Rate'}</Button>
+
+            <Button type="submit" className="w-full">{editingRate ? 'Save Changes' : 'Add Plan'}</Button>
           </form>
         </DialogContent>
       </Dialog>
