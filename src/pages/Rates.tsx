@@ -90,8 +90,8 @@ const RatesPage = () => {
       carrier: form.carrier,
       planType: form.planType,
       planName: form.planName,
-      initialAmount: form.nonCommissionable ? 0 : parseFloat(form.initialAmount),
-      renewalAmount: form.nonCommissionable ? 0 : parseFloat(form.renewalAmount),
+      initialAmount: form.nonCommissionable ? 0 : parseFloat(form.initialAmount || '0'),
+      renewalAmount: form.nonCommissionable ? 0 : parseFloat(form.renewalAmount || '0'),
       nonCommissionable: form.nonCommissionable,
     };
     if (editingRate) {
@@ -266,11 +266,11 @@ const RatesPage = () => {
                   )}
                 </Label>
                 <Input
-                  required
+                  required={!form.nonCommissionable}
                   type="number"
                   step="0.01"
                   min="0"
-                  value={form.initialAmount}
+                  value={form.nonCommissionable ? '0' : form.initialAmount}
                   onChange={e => setForm(f => ({ ...f, initialAmount: e.target.value }))}
                   placeholder="694"
                   disabled={form.nonCommissionable}
@@ -285,11 +285,11 @@ const RatesPage = () => {
                   )}
                 </Label>
                 <Input
-                  required
+                  required={!form.nonCommissionable}
                   type="number"
                   step="0.01"
                   min="0"
-                  value={form.renewalAmount}
+                  value={form.nonCommissionable ? '0' : form.renewalAmount}
                   onChange={e => setForm(f => ({ ...f, renewalAmount: e.target.value }))}
                   placeholder="347"
                   disabled={form.nonCommissionable}
