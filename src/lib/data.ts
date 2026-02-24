@@ -3,12 +3,19 @@ export type PlanType = typeof PLAN_TYPES[number];
 
 export const DEFAULT_CARRIERS = ['Humana', 'Aetna', 'UnitedHealthcare', 'Cigna', 'Blue Cross', 'Mutual of Omaha'] as const;
 
+// CMS 2026 maximum broker compensation rates
+export const CMS_2026_RATES: Record<string, { initial: number; renewal: number }> = {
+  'Medicare Advantage': { initial: 694, renewal: 347 },
+  'Part D': { initial: 114, renewal: 57 },
+};
+
 export interface Commission {
   id: string;
   agentName: string;
   policyNumber: string;
   carrier: string;
   planType: PlanType;
+  planName?: string;
   enrollmentDate: string;
   commissionAmount: number;
   status: 'pending' | 'paid' | 'clawback';
@@ -20,19 +27,23 @@ export interface CommissionRate {
   id: string;
   carrier: string;
   planType: PlanType;
-  amount: number;
+  planName: string;
+  initialAmount: number;
+  renewalAmount: number;
+  nonCommissionable: boolean;
 }
 
 export const sampleRates: CommissionRate[] = [
-  { id: '1', carrier: 'Humana', planType: 'Medicare Advantage', amount: 601 },
-  { id: '2', carrier: 'Humana', planType: 'Medicare Supplement', amount: 450 },
-  { id: '3', carrier: 'Humana', planType: 'Part D', amount: 100 },
-  { id: '4', carrier: 'Aetna', planType: 'Medicare Advantage', amount: 601 },
-  { id: '5', carrier: 'Aetna', planType: 'Medicare Supplement', amount: 475 },
-  { id: '6', carrier: 'UnitedHealthcare', planType: 'Medicare Advantage', amount: 601 },
-  { id: '7', carrier: 'Cigna', planType: 'Part D', amount: 100 },
-  { id: '8', carrier: 'Blue Cross', planType: 'Medicare Advantage', amount: 601 },
-  { id: '9', carrier: 'Mutual of Omaha', planType: 'Medicare Supplement', amount: 520 },
+  { id: '1', carrier: 'Humana', planType: 'Medicare Advantage', planName: 'Humana Gold Plus H1036-040', initialAmount: 694, renewalAmount: 347, nonCommissionable: false },
+  { id: '2', carrier: 'Humana', planType: 'Medicare Advantage', planName: 'Humana Honor H5216-254', initialAmount: 694, renewalAmount: 347, nonCommissionable: false },
+  { id: '3', carrier: 'Humana', planType: 'Part D', planName: 'Humana Walmart Value Rx Plan', initialAmount: 114, renewalAmount: 57, nonCommissionable: false },
+  { id: '4', carrier: 'Humana', planType: 'Medicare Supplement', planName: 'Humana Plan G', initialAmount: 450, renewalAmount: 225, nonCommissionable: false },
+  { id: '5', carrier: 'Aetna', planType: 'Medicare Advantage', planName: 'Aetna Medicare Eagle Plan', initialAmount: 694, renewalAmount: 347, nonCommissionable: false },
+  { id: '6', carrier: 'Aetna', planType: 'Medicare Advantage', planName: 'Aetna Medicare Value Plan', initialAmount: 0, renewalAmount: 0, nonCommissionable: true },
+  { id: '7', carrier: 'UnitedHealthcare', planType: 'Medicare Advantage', planName: 'AARP Medicare Advantage Plan 1', initialAmount: 694, renewalAmount: 347, nonCommissionable: false },
+  { id: '8', carrier: 'Cigna', planType: 'Part D', planName: 'Cigna Secure Rx', initialAmount: 114, renewalAmount: 57, nonCommissionable: false },
+  { id: '9', carrier: 'Blue Cross', planType: 'Medicare Advantage', planName: 'Blue Cross MA Saver', initialAmount: 694, renewalAmount: 347, nonCommissionable: false },
+  { id: '10', carrier: 'Mutual of Omaha', planType: 'Medicare Supplement', planName: 'Plan G', initialAmount: 520, renewalAmount: 260, nonCommissionable: false },
 ];
 
 export const sampleCommissions: Commission[] = [
@@ -42,6 +53,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'MA-2024-00142',
     carrier: 'Humana',
     planType: 'Medicare Advantage',
+    planName: 'Humana Gold Plus H1036-040',
     enrollmentDate: '2025-10-15',
     commissionAmount: 601,
     status: 'paid',
@@ -63,6 +75,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'MA-2024-00301',
     carrier: 'UnitedHealthcare',
     planType: 'Medicare Advantage',
+    planName: 'AARP Medicare Advantage Plan 1',
     enrollmentDate: '2025-10-20',
     commissionAmount: 601,
     status: 'paid',
@@ -74,6 +87,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'PD-2024-00089',
     carrier: 'Cigna',
     planType: 'Part D',
+    planName: 'Cigna Secure Rx',
     enrollmentDate: '2025-11-10',
     commissionAmount: 100,
     status: 'pending',
@@ -84,6 +98,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'MA-2024-00415',
     carrier: 'Blue Cross',
     planType: 'Medicare Advantage',
+    planName: 'Blue Cross MA Saver',
     enrollmentDate: '2025-09-28',
     commissionAmount: 601,
     status: 'paid',
@@ -95,6 +110,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'MA-2024-00416',
     carrier: 'Humana',
     planType: 'Medicare Advantage',
+    planName: 'Humana Gold Plus H1036-040',
     enrollmentDate: '2025-12-01',
     commissionAmount: 601,
     status: 'clawback',
@@ -106,6 +122,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'MS-2024-00512',
     carrier: 'Mutual of Omaha',
     planType: 'Medicare Supplement',
+    planName: 'Plan G',
     enrollmentDate: '2026-01-05',
     commissionAmount: 520,
     status: 'pending',
@@ -116,6 +133,7 @@ export const sampleCommissions: Commission[] = [
     policyNumber: 'MA-2024-00520',
     carrier: 'Aetna',
     planType: 'Medicare Advantage',
+    planName: 'Aetna Medicare Eagle Plan',
     enrollmentDate: '2026-01-12',
     commissionAmount: 601,
     status: 'paid',
