@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -16,6 +17,7 @@ import {
 import { CheckCircle2, Clock, AlertTriangle, ChevronDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Commission } from "@/lib/data";
+import SavedIndicator from "@/components/SavedIndicator";
 
 interface CommissionTableProps {
   commissions: Commission[];
@@ -36,6 +38,15 @@ const statusOptions: { value: Commission['status']; label: string; icon: typeof 
 ];
 
 const CommissionTable = ({ commissions, onStatusChange, onEdit }: CommissionTableProps) => {
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [savedTrigger, setSavedTrigger] = useState(0);
+
+  const handleStatusChange = (id: string, status: Commission['status']) => {
+    onStatusChange(id, status);
+    setSavedId(id);
+    setSavedTrigger(t => t + 1);
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
       <Table>
@@ -81,7 +92,7 @@ const CommissionTable = ({ commissions, onStatusChange, onEdit }: CommissionTabl
                     {statusOptions.map(opt => (
                       <DropdownMenuItem
                         key={opt.value}
-                        onClick={() => onStatusChange(c.id, opt.value)}
+                        onClick={() => handleStatusChange(c.id, opt.value)}
                         className={c.status === opt.value ? 'font-semibold' : ''}
                       >
                         <opt.icon className="h-4 w-4 mr-2" />
@@ -90,6 +101,7 @@ const CommissionTable = ({ commissions, onStatusChange, onEdit }: CommissionTabl
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                {savedId === c.id && <SavedIndicator trigger={savedTrigger} />}
               </TableCell>
               <TableCell>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => onEdit(c)}>
