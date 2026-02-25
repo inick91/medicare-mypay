@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      commission_rates: {
+        Row: {
+          carrier: string
+          created_at: string
+          id: string
+          initial_amount: number
+          non_commissionable: boolean
+          plan_name: string
+          plan_type: string
+          renewal_amount: number
+          updated_at: string
+        }
+        Insert: {
+          carrier: string
+          created_at?: string
+          id?: string
+          initial_amount?: number
+          non_commissionable?: boolean
+          plan_name: string
+          plan_type: string
+          renewal_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          carrier?: string
+          created_at?: string
+          id?: string
+          initial_amount?: number
+          non_commissionable?: boolean
+          plan_name?: string
+          plan_type?: string
+          renewal_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      commissions: {
+        Row: {
+          agent_name: string
+          carrier: string
+          commission_amount: number
+          created_at: string
+          enrollment_date: string
+          id: string
+          notes: string | null
+          paid_date: string | null
+          plan_name: string | null
+          plan_type: string
+          policy_number: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_name: string
+          carrier: string
+          commission_amount?: number
+          created_at?: string
+          enrollment_date: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          plan_name?: string | null
+          plan_type: string
+          policy_number: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_name?: string
+          carrier?: string
+          commission_amount?: number
+          created_at?: string
+          enrollment_date?: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          plan_name?: string | null
+          plan_type?: string
+          policy_number?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
