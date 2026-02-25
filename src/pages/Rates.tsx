@@ -5,30 +5,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Settings, ArrowLeft, Ban } from "lucide-react";
+import { Plus, Pencil, Trash2, Settings, ArrowLeft, Ban, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CommissionRate, PLAN_TYPES, DEFAULT_CARRIERS, CMS_2026_RATES } from "@/lib/data";
-import SavedIndicator from "@/components/SavedIndicator";
 import { useRates } from "@/contexts/RatesContext";
 
 const RatesPage = () => {
-  const { rates, setRates } = useRates();
+  const { rates, loading, addRate, updateRate, deleteRate } = useRates();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRate, setEditingRate] = useState<CommissionRate | null>(null);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     carrier: '',
     planType: '' as CommissionRate['planType'],
@@ -37,10 +27,6 @@ const RatesPage = () => {
     renewalAmount: '',
     nonCommissionable: false,
   });
-
-  // Saved indicator state
-  const [savedId, setSavedId] = useState<string | null>(null);
-  const [savedTrigger, setSavedTrigger] = useState(0);
 
   const openAdd = () => {
     setEditingRate(null);
@@ -61,7 +47,6 @@ const RatesPage = () => {
     setFormOpen(true);
   };
 
-  // When plan type changes, auto-fill CMS defaults
   const handlePlanTypeChange = (planType: CommissionRate['planType']) => {
     const defaults = CMS_2026_RATES[planType];
     setForm(f => ({
@@ -84,10 +69,10 @@ const RatesPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const entry: CommissionRate = {
-      id: editingRate?.id ?? crypto.randomUUID(),
+    setSaving(true);
+    const entry = {
       carrier: form.carrier,
       planType: form.planType,
       planName: form.planName,
@@ -96,19 +81,27 @@ const RatesPage = () => {
       nonCommissionable: form.nonCommissionable,
     };
     if (editingRate) {
-      setRates(prev => prev.map(r => r.id === entry.id ? entry : r));
+      await updateRate({ ...entry, id: editingRate.id });
     } else {
-      setRates(prev => [...prev, entry]);
+      await addRate(entry);
     }
+    setSaving(false);
     setFormOpen(false);
   };
 
   const handleDelete = (id: string) => {
-    setRates(prev => prev.filter(r => r.id !== id));
+    deleteRate(id);
   };
 
-  // Group rates by carrier
   const carriers = [...new Set(rates.map(r => r.carrier))].sort();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -213,13 +206,7 @@ const RatesPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Carrier</Label>
-                <Input
-                  required
-                  value={form.carrier}
-                  onChange={e => setForm(f => ({ ...f, carrier: e.target.value }))}
-                  placeholder="e.g. Humana"
-                  list="carrier-suggestions"
-                />
+                <Input required value={form.carrier} onChange={e => setForm(f => ({ ...f, carrier: e.target.value }))} placeholder="e.g. Humana" list="carrier-suggestions" />
                 <datalist id="carrier-suggestions">
                   {DEFAULT_CARRIERS.map(c => <option key={c} value={c} />)}
                 </datalist>
@@ -229,35 +216,22 @@ const RatesPage = () => {
                 <Select required value={form.planType} onValueChange={handlePlanTypeChange}>
                   <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                   <SelectContent>
-                    {PLAN_TYPES.map(pt => (
-                      <SelectItem key={pt} value={pt}>{pt}</SelectItem>
-                    ))}
+                    {PLAN_TYPES.map(pt => <SelectItem key={pt} value={pt}>{pt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label>Plan Name</Label>
-              <Input
-                required
-                value={form.planName}
-                onChange={e => setForm(f => ({ ...f, planName: e.target.value }))}
-                placeholder="e.g. Humana Gold Plus H1036-040"
-              />
+              <Input required value={form.planName} onChange={e => setForm(f => ({ ...f, planName: e.target.value }))} placeholder="e.g. Humana Gold Plus H1036-040" />
             </div>
-
             <div className="flex items-center justify-between rounded-lg border border-border p-3 bg-muted/30">
               <div>
                 <Label className="text-sm font-medium">Non-Commissionable</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">Commission is $0 and cannot be edited</p>
               </div>
-              <Switch
-                checked={form.nonCommissionable}
-                onCheckedChange={handleNonCommissionableToggle}
-              />
+              <Switch checked={form.nonCommissionable} onCheckedChange={handleNonCommissionableToggle} />
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center justify-between">
@@ -266,17 +240,7 @@ const RatesPage = () => {
                     <span className="text-xs text-muted-foreground font-normal">CMS max: ${CMS_2026_RATES[form.planType].initial}</span>
                   )}
                 </Label>
-                <Input
-                  required={!form.nonCommissionable}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.nonCommissionable ? '0' : form.initialAmount}
-                  onChange={e => setForm(f => ({ ...f, initialAmount: e.target.value }))}
-                  placeholder="694"
-                  disabled={form.nonCommissionable}
-                  className={form.nonCommissionable ? 'opacity-50' : ''}
-                />
+                <Input required={!form.nonCommissionable} type="number" step="0.01" min="0" value={form.nonCommissionable ? '0' : form.initialAmount} onChange={e => setForm(f => ({ ...f, initialAmount: e.target.value }))} placeholder="694" disabled={form.nonCommissionable} className={form.nonCommissionable ? 'opacity-50' : ''} />
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center justify-between">
@@ -285,21 +249,13 @@ const RatesPage = () => {
                     <span className="text-xs text-muted-foreground font-normal">CMS max: ${CMS_2026_RATES[form.planType].renewal}</span>
                   )}
                 </Label>
-                <Input
-                  required={!form.nonCommissionable}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.nonCommissionable ? '0' : form.renewalAmount}
-                  onChange={e => setForm(f => ({ ...f, renewalAmount: e.target.value }))}
-                  placeholder="347"
-                  disabled={form.nonCommissionable}
-                  className={form.nonCommissionable ? 'opacity-50' : ''}
-                />
+                <Input required={!form.nonCommissionable} type="number" step="0.01" min="0" value={form.nonCommissionable ? '0' : form.renewalAmount} onChange={e => setForm(f => ({ ...f, renewalAmount: e.target.value }))} placeholder="347" disabled={form.nonCommissionable} className={form.nonCommissionable ? 'opacity-50' : ''} />
               </div>
             </div>
-
-            <Button type="submit" className="w-full">{editingRate ? 'Save Changes' : 'Add Plan'}</Button>
+            <Button type="submit" className="w-full" disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {editingRate ? 'Save Changes' : 'Add Plan'}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
