@@ -243,7 +243,7 @@ export function evaluateEnrollmentPeriods(input: SepFinderInput): EnrollmentPeri
         : 'You receive the Low-Income Subsidy (Extra Help), qualifying you for a monthly SEP.',
       allowedActions: input.isDualEligible
         ? 'Enroll in or switch Part D or certain MA plans once per month. Note: some MA-only plans may not be available through this SEP.'
-        : 'Switch Part D plans or MA-PD plans once per month.',
+        : 'Switch standalone Part D plans once per month. This SEP does not allow switching between Medicare Advantage plans.',
       limitedUse: false,
       strategicGuidance: 'This SEP is ongoing and can be used monthly. Use time-limited SEPs first to preserve maximum flexibility.',
       warning: input.isDualEligible
