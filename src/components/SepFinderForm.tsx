@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import MonthPicker from '@/components/MonthPicker';
 import type { SepFinderInput } from '@/lib/sep-rules';
 import { Search } from 'lucide-react';
 
@@ -54,7 +55,7 @@ export default function SepFinderForm({ onSubmit }: Props) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="partA">Part A Effective Date</Label>
-              <Input id="partA" type="date" value={partA} onChange={e => setPartA(e.target.value)} required />
+              <MonthPicker id="partA" value={partA} onChange={setPartA} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="turn65">Turning 65 Date <span className="text-muted-foreground text-xs">(leave blank if already 65+)</span></Label>
