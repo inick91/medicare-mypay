@@ -63,6 +63,29 @@ export default function Login() {
         <button type="submit" disabled={loading} style={{ padding: 10 }}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
+<button
+  type="button"
+  disabled={loading}
+  style={{ padding: 10 }}
+  onClick={async () => {
+    setError(null);
+    setLoading(true);
+
+    const { error } = await supabase.auth.signUp({ email, password });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    navigate("/");
+  }}
+>
+  {loading ? "Signing up..." : "Sign up"}
+</button>
+        
       </form>
     </div>
   );
