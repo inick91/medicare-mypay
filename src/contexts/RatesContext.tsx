@@ -45,9 +45,9 @@ export const RatesProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from("commission_rates")
-      .select("*")
+      .select("*") as any)
       .eq("user_id", userId)
       .order("carrier");
 
@@ -84,7 +84,7 @@ export const RatesProvider = ({ children }: { children: ReactNode }) => {
     const userId = authData.user?.id;
     if (!userId) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from("commission_rates")
       .insert({
         user_id: userId,
@@ -94,7 +94,7 @@ export const RatesProvider = ({ children }: { children: ReactNode }) => {
         initial_amount: rate.initialAmount,
         renewal_amount: rate.renewalAmount,
         non_commissionable: rate.nonCommissionable,
-      })
+      } as any))
       .select()
       .single();
 
