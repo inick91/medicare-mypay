@@ -140,3 +140,19 @@ export const sampleCommissions: Commission[] = [
     paidDate: '2026-02-15',
   },
 ];
+
+export type CommissionStatus = "paid" | "pending" | "clawback";
+
+export type Commission = {
+  id: string;
+  agentName: string;
+  policyNumber: string;
+  carrier: string;
+  planType: string;
+  planName?: string;
+  enrollmentDate: string;
+  commissionAmount: number;
+  status: CommissionStatus;
+  paidDate?: string;
+  notes?: string;
+};
