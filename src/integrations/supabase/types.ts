@@ -25,6 +25,7 @@ export type Database = {
           plan_type: string
           renewal_amount: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           carrier: string
@@ -36,6 +37,7 @@ export type Database = {
           plan_type: string
           renewal_amount?: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           carrier?: string
@@ -47,6 +49,7 @@ export type Database = {
           plan_type?: string
           renewal_amount?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -65,6 +68,7 @@ export type Database = {
           policy_number: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           agent_name: string
@@ -80,6 +84,7 @@ export type Database = {
           policy_number: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           agent_name?: string
@@ -95,6 +100,7 @@ export type Database = {
           policy_number?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

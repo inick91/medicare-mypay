@@ -17,7 +17,7 @@ const mapRow = (row: any): Commission => ({
   agentName: String(row.agent_name ?? ""),
   policyNumber: String(row.policy_number ?? ""),
   carrier: String(row.carrier ?? ""),
-  planType: String(row.plan_type ?? ""),
+  planType: String(row.plan_type ?? "") as Commission["planType"],
   planName: row.plan_name ?? undefined,
   enrollmentDate: String(row.enrollment_date ?? ""),
   commissionAmount: Number(row.commission_amount ?? 0),
@@ -54,9 +54,9 @@ const Index = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("commissions")
-        .select("*")
+        .select("*") as any)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
@@ -127,7 +127,7 @@ const Index = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("commissions")
         .insert({
           user_id: userId,
@@ -139,7 +139,7 @@ const Index = () => {
           enrollment_date: commission.enrollmentDate,
           commission_amount: commission.commissionAmount,
           status: commission.status,
-        })
+        } as any))
         .select()
         .single();
 
