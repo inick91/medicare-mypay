@@ -13,16 +13,16 @@ import CommissionFormDialog from "@/components/CommissionFormDialog";
 import { Commission } from "@/lib/data";
 
 const mapRow = (row: any): Commission => ({
-  id: row.id,
-  agentName: row.agent_name,
-  policyNumber: row.policy_number,
-  carrier: row.carrier,
-  planType: row.plan_type,
+  id: String(row.id),
+  agentName: String(row.agent_name ?? ""),
+  policyNumber: String(row.policy_number ?? ""),
+  carrier: String(row.carrier ?? ""),
+  planType: String(row.plan_type ?? ""),
   planName: row.plan_name ?? undefined,
-  enrollmentDate: row.enrollment_date,
-  commissionAmount: Number(row.commission_amount),
-  status: row.status,
-  paidDate: row.paid_date ?? undefined,
+  enrollmentDate: String(row.enrollment_date ?? ""),
+  commissionAmount: Number(row.commission_amount ?? 0),
+  status: (row.status as Commission["status"]) ?? "pending",
+  paidDate: row.paid_date ? String(row.paid_date) : undefined,
   notes: row.notes ?? undefined,
 });
 
